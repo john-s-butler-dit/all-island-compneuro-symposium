@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CompNeuro Workshop 2026</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0b0f1a;
+      --surface: #111827;
+      --border: #1e2d40;
+      --accent: #00d9a3;
+      --accent2: #7b8cde;
+      --text: #e8eaf0;
+      --muted: #6b7a99;
+      --mono: 'Space Mono', monospace;
+      --serif: 'Fraunces', serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: var(--mono); font-size: 14px; line-height: 1.7; overflow-x: hidden; }
+
+    header { position: relative; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; padding: 6rem 8vw 4rem; overflow: hidden; }
+    .grid-bg { position: absolute; inset: 0; background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px); background-size: 48px 48px; opacity: 0.4; }
+    .neuron-canvas { position: absolute; inset: 0; opacity: 0.18; }
+    .glow { position: absolute; width: 520px; height: 520px; border-radius: 50%; background: radial-gradient(circle, rgba(0,217,163,0.18) 0%, transparent 70%); top: -100px; right: -60px; pointer-events: none; }
+    .glow2 { position: absolute; width: 340px; height: 340px; border-radius: 50%; background: radial-gradient(circle, rgba(123,140,222,0.15) 0%, transparent 70%); bottom: 80px; left: 20vw; pointer-events: none; }
+
+    .label { color: var(--accent); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 1.5rem; opacity: 0; animation: fadeUp 0.6s 0.2s forwards; }
+    h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: 1.05; max-width: 700px; opacity: 0; animation: fadeUp 0.7s 0.4s forwards; }
+    h1 em { font-style: italic; color: var(--accent); }
+    .hero-sub { margin-top: 1.5rem; color: var(--muted); max-width: 480px; font-size: 13px; opacity: 0; animation: fadeUp 0.7s 0.6s forwards; }
+    .hero-meta { display: flex; gap: 2rem; margin-top: 2.5rem; opacity: 0; animation: fadeUp 0.7s 0.8s forwards; flex-wrap: wrap; }
+    .hero-meta span { display: flex; flex-direction: column; gap: 0.2rem; }
+    .hero-meta .key { font-size: 10px; color: var(--accent2); letter-spacing: 0.15em; text-transform: uppercase; }
+    .hero-meta .val { font-size: 14px; color: var(--text); }
+    .cta-row { display: flex; gap: 1rem; margin-top: 2.5rem; flex-wrap: wrap; opacity: 0; animation: fadeUp 0.7s 1s forwards; }
+    .btn { padding: 0.7rem 1.6rem; border-radius: 2px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; cursor: pointer; text-decoration: none; transition: all 0.2s; text-transform: uppercase; }
+    .btn-primary { background: var(--accent); color: var(--bg); border: none; }
+    .btn-primary:hover { background: #00f0b5; transform: translateY(-2px); }
+    .btn-outline { background: transparent; color: var(--accent2); border: 1px solid var(--accent2); }
+    .btn-outline:hover { background: rgba(123,140,222,0.1); transform: translateY(-2px); }
+
+    section { padding: 5rem 8vw; border-top: 1px solid var(--border); }
+    .section-label { font-size: 10px; color: var(--accent); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 2rem; }
+    h2 { font-family: var(--serif); font-weight: 300; font-size: clamp(1.6rem, 3.5vw, 2.6rem); margin-bottom: 2.5rem; line-height: 1.2; }
+
+    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; }
+    @media (max-width: 700px) { .about-grid { grid-template-columns: 1fr; gap: 2rem; } }
+    .about-text p { color: var(--muted); margin-bottom: 1rem; font-size: 13px; }
+    .about-text p strong { color: var(--text); }
+    .topics { list-style: none; }
+    .topics li { padding: 0.7rem 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.8rem; font-size: 13px; color: var(--muted); }
+    .topics li::before { content: '//'; color: var(--accent); font-size: 11px; flex-shrink: 0; }
+
+    .schedule-table { width: 100%; border-collapse: collapse; }
+    .schedule-table th { text-align: left; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent2); padding: 0.6rem 1rem 0.6rem 0; border-bottom: 1px solid var(--border); }
+    .schedule-table td { padding: 0.85rem 1rem 0.85rem 0; border-bottom: 1px solid var(--border); vertical-align: top; font-size: 12px; }
+    .schedule-table tr:hover td { background: rgba(255,255,255,0.02); }
+    .time-cell { color: var(--accent); white-space: nowrap; width: 120px; }
+    .type-badge { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 2px; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; margin-left: 0.5rem; }
+    .talk { background: rgba(0,217,163,0.12); color: var(--accent); }
+    .lab  { background: rgba(123,140,222,0.12); color: var(--accent2); }
+    .break { background: rgba(255,255,255,0.05); color: var(--muted); }
+
+    .speakers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.5rem; }
+    .speaker-card { border: 1px solid var(--border); padding: 1.5rem; border-radius: 2px; transition: border-color 0.2s, transform 0.2s; }
+    .speaker-card:hover { border-color: var(--accent2); transform: translateY(-3px); }
+    .speaker-avatar { width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, var(--accent2), var(--accent)); display: flex; align-items: center; justify-content: center; font-family: var(--serif); font-size: 1.3rem; color: var(--bg); margin-bottom: 1rem; }
+    .speaker-name { font-size: 13px; margin-bottom: 0.2rem; }
+    .speaker-inst { font-size: 11px; color: var(--muted); margin-bottom: 0.6rem; }
+    .speaker-topic { font-size: 11px; color: var(--accent); }
+
+    .register-box { border: 1px solid var(--border); padding: 3rem; max-width: 600px; border-radius: 2px; background: var(--surface); }
+    .register-box p { color: var(--muted); font-size: 13px; margin-bottom: 2rem; }
+    .form-row { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1.2rem; }
+    .form-row label { font-size: 10px; color: var(--accent2); letter-spacing: 0.15em; text-transform: uppercase; }
+    .form-row input, .form-row select { background: var(--bg); border: 1px solid var(--border); border-radius: 2px; padding: 0.6rem 0.8rem; color: var(--text); font-family: var(--mono); font-size: 13px; width: 100%; transition: border-color 0.2s; }
+    .form-row input:focus, .form-row select:focus { outline: none; border-color: var(--accent); }
+
+    footer { padding: 3rem 8vw; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .footer-logo { font-family: var(--serif); font-size: 1.1rem; font-weight: 600; color: var(--text); }
+    footer p { color: var(--muted); font-size: 11px; }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a { color: var(--muted); text-decoration: none; font-size: 11px; letter-spacing: 0.05em; }
+    .footer-links a:hover { color: var(--accent); }
+
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; padding: 1rem 8vw; background: rgba(11,15,26,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+    .nav-logo { font-family: var(--serif); font-size: 1rem; color: var(--text); }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--accent); }
+    @media (max-width: 600px) { .nav-links { display: none; } }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">CompNeuro '26</div>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#schedule">Schedule</a></li>
+    <li><a href="#speakers">Speakers</a></li>
+    <li><a href="#register">Register</a></li>
+  </ul>
+</nav>
+
+<header>
+  <div class="grid-bg"></div>
+  <canvas class="neuron-canvas" id="neuronCanvas"></canvas>
+  <div class="glow"></div>
+  <div class="glow2"></div>
+  <p class="label">Workshop · Summer 2026</p>
+  <h1>Computational<br/><em>Neuroscience</em><br/>Workshop</h1>
+  <p class="hero-sub">An intensive five-day workshop at the intersection of neural data analysis, dynamical systems, and machine learning.</p>
+  <div class="hero-meta">
+    <span><span class="key">Date</span><span class="val">July 14–18, 2026</span></span>
+    <span><span class="key">Location</span><span class="val">Dublin, Ireland</span></span>
+    <span><span class="key">Capacity</span><span class="val">60 Participants</span></span>
+  </div>
+  <div class="cta-row">
+    <a href="#register" class="btn btn-primary">Apply Now</a>
+    <a href="#schedule" class="btn btn-outline">View Schedule</a>
+  </div>
+</header>
+
+<section id="about">
+  <p class="section-label">// 01 — About</p>
+  <h2>Where neural data meets<br/>mathematical rigour</h2>
+  <div class="about-grid">
+    <div class="about-text">
+      <p>The <strong>CompNeuro Workshop</strong> brings together graduate students, postdocs, and faculty for an immersive week of lectures, hands-on labs, and collaborative research discussions.</p>
+      <p>Participants gain practical experience with modern techniques for analysing neural population activity, fitting mechanistic models, and applying deep learning to neuroscience problems.</p>
+      <p>All tutorial notebooks and datasets are open-source and available on GitHub after the workshop.</p>
+    </div>
+    <div>
+      <ul class="topics">
+        <li>Dimensionality reduction of neural population data</li>
+        <li>Latent variable models & variational inference</li>
+        <li>Spiking neural networks & STDP</li>
+        <li>Reinforcement learning & decision making</li>
+        <li>Recurrent network dynamics</li>
+        <li>Bayesian decoding of sensory signals</li>
+        <li>Point process models for spike trains</li>
+        <li>Large-scale neural data with Neuropixels</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="schedule">
+  <p class="section-label">// 02 — Schedule</p>
+  <h2>Five days, densely packed</h2>
+  <table class="schedule-table">
+    <thead><tr><th>Time</th><th>Session</th><th>Speaker</th></tr></thead>
+    <tbody>
+      <tr><td colspan="3" style="color:var(--accent2);font-size:10px;letter-spacing:0.1em;padding-top:1.2rem;padding-bottom:0.3rem">DAY 1 — MONDAY 14 JULY</td></tr>
+      <tr><td class="time-cell">09:00</td><td>Opening & Orientation <span class="type-badge talk">talk</span></td><td style="color:var(--muted)">Organizers</td></tr>
+      <tr><td class="time-cell">10:00</td><td>Neural Data: From Spikes to Populations <span class="type-badge talk">talk</span></td><td style="color:var(--muted)">Dr. A. Ecker</td></tr>
+      <tr><td class="time-cell">13:00</td><td>Spike Sorting & Preprocessing Lab <span class="type-badge lab">lab</span></td><td style="color:var(--muted)">TAs</td></tr>
+      <tr><td class="time-cell">16:30</td><td>Coffee & Poster Flash Talks <span class="type-badge break">social</span></td><td style="color:var(--muted)">—</td></tr>
+      <tr><td colspan="3" style="color:var(--accent2);font-size:10px;letter-spacing:0.1em;padding-top:1.2rem;padding-bottom:0.3rem">DAY 2 — TUESDAY 15 JULY</td></tr>
+      <tr><td class="time-cell">09:00</td><td>Dimensionality Reduction & Factor Analysis <span class="type-badge talk">talk</span></td><td style="color:var(--muted)">Prof. J. Cunningham</td></tr>
+      <tr><td class="time-cell">11:00</td><td>PCA, GPFA, and LFADS Lab <span class="type-badge lab">lab</span></td><td style="color:var(--muted)">TAs</td></tr>
+      <tr><td class="time-cell">14:00</td><td>Variational Autoencoders for Neural Data <span class="type-badge talk">talk</span></td><td style="color:var(--muted)">Dr. Y. Zhao</td></tr>
+      <tr><td class="time-cell">16:00</td><td>Hack Session I <span class="type-badge lab">lab</span></td><td style="color:var(--muted)">All</td></tr>
+      <tr><td colspan="3" style="color:var(--accent2);font-size:10px;letter-spacing:0.1em;padding-top:1.2rem;padding-bottom:0.3rem">DAY 3 — WEDNESDAY 16 JULY</td></tr>
+      <tr><td class="time-cell">09:00</td><td>Recurrent Networks & Dynamics <span class="type-badge talk">talk</span></td><td style="color:var(--muted)">Prof. S. Ostojic</td></tr>
+      <tr><td class="time-cell">11:00</td><td>Training RNNs on Cognitive Tasks <span class="type-badge lab">lab</span></td><td style="color:var(--muted)">TAs</td></tr>
+      <tr><td class="time-cell">14:00</td><td>Excursion & Social Afternoon <span class="type-badge break">social</span></td><td style="color:var(--muted)">—</td></tr>
+      <tr><td colspan="3" style="color:var(--accent2);font-size:10px;letter-spacing:0.1em;padding-top:1.2rem;padding-bottom:0.3rem">DAY 4 — THURSDAY 17 JULY</td></tr>
+      <tr><td class="time-cell">09:00</td><td>RL & Computational Psychiatry <span class="type-badge talk">talk</span></td><td style="color:var(--muted)">Dr. N. Daw</td></tr>
+      <tr><td class="time-cell">11:00</td><td>Bandit Tasks & Model Fitting Lab <span class="type-badge lab">lab</span></td><td style="color:var(--muted)">TAs</td></tr>
+      <tr><td class="time-cell">14:00</td><td>Bayesian Brain Hypothesis <span class="type-badge talk">talk</span></td><td style="color:var(--muted)">Prof. A. Pouget</td></tr>
+      <tr><td class="time-cell">16:00</td><td>Hack Session II <span class="type-badge lab">lab</span></td><td style="color:var(--muted)">All</td></tr>
+      <tr><td colspan="3" style="color:var(--accent2);font-size:10px;letter-spacing:0.1em;padding-top:1.2rem;padding-bottom:0.3rem">DAY 5 — FRIDAY 18 JULY</td></tr>
+      <tr><td class="time-cell">09:00</td><td>Neuropixels & Large-Scale Recording <span class="type-badge talk">talk</span></td><td style="color:var(--muted)">Dr. C. Stringer</td></tr>
+      <tr><td class="time-cell">11:00</td><td>Project Presentations <span class="type-badge lab">lab</span></td><td style="color:var(--muted)">Participants</td></tr>
+      <tr><td class="time-cell">14:00</td><td>Panel: Careers in CompNeuro <span class="type-badge talk">talk</span></td><td style="color:var(--muted)">All Speakers</td></tr>
+      <tr><td class="time-cell">16:00</td><td>Closing Reception <span class="type-badge break">social</span></td><td style="color:var(--muted)">—</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="speakers">
+  <p class="section-label">// 03 — Speakers</p>
+  <h2>Invited faculty</h2>
+  <div class="speakers-grid">
+    <div class="speaker-card"><div class="speaker-avatar">JC</div><div class="speaker-name">Prof. John Cunningham</div><div class="speaker-inst">Columbia University</div><div class="speaker-topic">// Latent variable models</div></div>
+    <div class="speaker-card"><div class="speaker-avatar">SO</div><div class="speaker-name">Prof. Srdjan Ostojic</div><div class="speaker-inst">ENS Paris</div><div class="speaker-topic">// Recurrent dynamics</div></div>
+    <div class="speaker-card"><div class="speaker-avatar">ND</div><div class="speaker-name">Dr. Nathaniel Daw</div><div class="speaker-inst">Princeton University</div><div class="speaker-topic">// Reinforcement learning</div></div>
+    <div class="speaker-card"><div class="speaker-avatar">AP</div><div class="speaker-name">Prof. Alexandre Pouget</div><div class="speaker-inst">University of Geneva</div><div class="speaker-topic">// Bayesian inference</div></div>
+    <div class="speaker-card"><div class="speaker-avatar">CS</div><div class="speaker-name">Dr. Carsen Stringer</div><div class="speaker-inst">Janelia Research Campus</div><div class="speaker-topic">// Large-scale neural data</div></div>
+    <div class="speaker-card"><div class="speaker-avatar">AE</div><div class="speaker-name">Dr. Alexander Ecker</div><div class="speaker-inst">University of Göttingen</div><div class="speaker-topic">// Neural population coding</div></div>
+  </div>
+</section>
+
+<section id="register">
+  <p class="section-label">// 04 — Register</p>
+  <h2>Apply to attend</h2>
+  <div class="register-box">
+    <p>Applications are reviewed on a rolling basis. Priority given to PhD students and early-career postdocs. Financial support is available — tick the box below.</p>
+    <div class="form-row"><label>Full Name</label><input type="text" placeholder="e.g. Ada Lovelace"/></div>
+    <div class="form-row"><label>Email</label><input type="email" placeholder="you@institution.edu"/></div>
+    <div class="form-row"><label>Institution</label><input type="text" placeholder="University / Research Institute"/></div>
+    <div class="form-row"><label>Career Stage</label>
+      <select>
+        <option value="">Select…</option>
+        <option>Masters Student</option>
+        <option>PhD Student</option>
+        <option>Postdoctoral Researcher</option>
+        <option>Faculty / PI</option>
+        <option>Industry Researcher</option>
+      </select>
+    </div>
+    <div style="margin-bottom:1.5rem;display:flex;align-items:center;gap:0.6rem">
+      <input type="checkbox" id="financial" style="width:auto;accent-color:var(--accent)"/>
+      <label for="financial" style="font-size:12px;color:var(--muted)">I would like to be considered for financial support</label>
+    </div>
+    <button class="btn btn-primary" onclick="handleApply(this)">Submit Application</button>
+  </div>
+</section>
+
+<footer>
+  <div>
+    <div class="footer-logo">CompNeuro Workshop '26</div>
+    <p style="margin-top:0.4rem">Dublin, Ireland · July 14–18, 2026</p>
+  </div>
+  <div class="footer-links">
+    <a href="https://github.com" target="_blank">GitHub</a>
+    <a href="#">Materials</a>
+    <a href="#">Contact</a>
+    <a href="#">Code of Conduct</a>
+  </div>
+</footer>
+
+<script>
+  const canvas = document.getElementById('neuronCanvas');
+  const ctx = canvas.getContext('2d');
+  function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+
+  const NODES = 38;
+  const nodes = Array.from({ length: NODES }, () => ({
+    x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight,
+    vx: (Math.random()-0.5)*0.4, vy: (Math.random()-0.5)*0.4,
+    r: Math.random()*2.5+1, pulse: Math.random()*Math.PI*2,
+  }));
+
+  function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    for (let i=0;i<NODES;i++) for (let j=i+1;j<NODES;j++) {
+      const dx=nodes[i].x-nodes[j].x, dy=nodes[i].y-nodes[j].y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if (dist<180) { ctx.beginPath(); ctx.moveTo(nodes[i].x,nodes[i].y); ctx.lineTo(nodes[j].x,nodes[j].y); ctx.strokeStyle=`rgba(0,217,163,${(1-dist/180)*0.5})`; ctx.lineWidth=0.6; ctx.stroke(); }
+    }
+    for (const n of nodes) {
+      n.pulse+=0.02; const glow=Math.sin(n.pulse)*0.5+0.5;
+      ctx.beginPath(); ctx.arc(n.x,n.y,n.r+glow*1.5,0,Math.PI*2);
+      ctx.fillStyle=`rgba(0,217,163,${0.4+glow*0.4})`; ctx.fill();
+      n.x+=n.vx; n.y+=n.vy;
+      if(n.x<0||n.x>canvas.width) n.vx*=-1;
+      if(n.y<0||n.y>canvas.height) n.vy*=-1;
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+
+  function handleApply(btn) {
+    btn.textContent='Application Submitted ✓';
+    btn.style.background='#00b387';
+    btn.disabled=true;
+  }
+</script>
+</body>
+</html>
