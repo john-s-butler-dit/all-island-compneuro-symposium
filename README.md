@@ -1,1 +1,1 @@
-# all-ireland-compneuro-workshop26
+# Website for the All Island Computational Neuroscience Symposium
